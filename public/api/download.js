@@ -1,7 +1,15 @@
-// api/download.js — Vercel serverless, code fixe, binaire lu depuis private/
+// api/download.js — Vercel serverless, code fixe 1234, binaire lu depuis private/
 
 const fs = require("fs");
 const path = require("path");
+
+function parseBody(req) {
+  if (req.body && typeof req.body === "object") return req.body;
+  if (typeof req.body === "string") {
+    try { return JSON.parse(req.body); } catch { return {}; }
+  }
+  return {};
+}
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -9,7 +17,9 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: "méthode non autorisée" });
   }
 
-  const { code } = req.body || {};
+  const body = parseBody(req);
+  const code = body.code;
+
   if (typeof code !== "string" || code.trim() !== "1234")
     return res.status(403).json({ error: "code invalide" });
 

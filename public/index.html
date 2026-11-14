@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Débloqueur — accès</title>
+<style>
+:root{--bg:#0e0f12;--fg:#e6e7eb;--dim:#8a8f99;--acc:#3ddc97;--acc2:#2fc484;--bd:#23262d;--card:#14161b;--err:#ff6b6b;--ok:#3ddc97}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;line-height:1.5}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:36px 28px;max-width:420px;width:100%}
+h1{font-size:22px;font-weight:600;margin-bottom:8px}
+.sub{color:var(--dim);font-size:14px;margin-bottom:24px}
+label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+input{width:100%;background:#0b0d10;color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:14px;font-family:ui-monospace,Consolas,monospace;font-size:20px;letter-spacing:.3em;text-align:center}
+input:focus{outline:none;border-color:var(--acc)}
+button{width:100%;margin-top:14px;background:var(--acc);color:#06251a;border:0;font-weight:600;font-size:15px;padding:14px;border-radius:8px;cursor:pointer}
+button:hover{background:var(--acc2)}
+button:disabled{opacity:.5;cursor:wait}
+.msg{margin-top:12px;font-size:13px;min-height:18px;text-align:center}
+.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+</style></head><body>
+<main class="card">
+<h1>Débloqueur CDI</h1>
+<p class="sub">DNS chiffré, policies navigateur purgées, Firefox à profil propre.</p>
+<label for="code">Code d'accès</label>
+<input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
+<button id="btn" type="button">Télécharger .exe</button>
+<div id="msg" class="msg"></div>
+</main>
+<script>
+const inp=document.getElementById("code"),btn=document.getElementById("btn"),msg=document.getElementById("msg");
+const show=(t,c)=>{msg.textContent=t;msg.className="msg "+(c||"")};
+const go=async()=>{
+const code=inp.value.trim();
+if(!code){show("entre le code","err");return}
+btn.disabled=true;show("vérification…","");
+try{
+const r=await fetch("/api/download",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code})});
+if(!r.ok){const j=await r.json().catch(()=>({}));show(j.error||"code invalide","err");return}
+const blob=await r.blob();const url=URL.createObjectURL(blob);
+const a=document.createElement("a");a.href=url;a.download="debloqueur.exe";
+document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+show("téléchargé","ok");
+}catch(e){show("réseau : "+e.message,"err")}
+finally{btn.disabled=false}
+};
+btn.onclick=go;
+inp.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+</script></body></html>
